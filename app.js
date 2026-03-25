@@ -98,20 +98,40 @@ function getTypeFromName(name=''){
 }
 
 function applyTypeFilter(){
-  const active=document.querySelector('.col-panel.active'); if(!active) return;
-  active.querySelectorAll('.card').forEach(card=>{
-    const name=(card.querySelector('.card-name')?.textContent||'').trim();
-    const type=getTypeFromName(name);
-    const map={
-      'todos':      ['top','calça','macaquinho','conjunto','outros'],
-      'top':        ['top'],
-      'calça':      ['calça'],
-      'macaquinho': ['macaquinho'],
-      'conjunto':   ['conjunto']
-    };
-    const allowed=map[CURRENT_TYPE]||[];
-    card.style.display=(CURRENT_TYPE==='todos'||allowed.includes(type))?'':'none';
-  });
+  // Quando "todos", mostra cards em TODOS os painéis
+  // Quando filtro específico, aplica só no painel ativo
+  const map={
+    'todos':      ['top','calça','macaquinho','conjunto','outros'],
+    'top':        ['top'],
+    'calça':      ['calça'],
+    'macaquinho': ['macaquinho'],
+    'conjunto':   ['conjunto']
+  };
+  const allowed = map[CURRENT_TYPE]||[];
+
+  if(CURRENT_TYPE === 'todos'){
+    // Mostra todos os cards em todos os painéis
+    document.querySelectorAll('.col-panel').forEach(panel=>{
+      panel.querySelectorAll('.card').forEach(card=>{
+        card.style.display = '';
+      });
+    });
+  } else {
+    // Filtra apenas no painel ativo
+    const active = document.querySelector('.col-panel.active');
+    if(!active) return;
+    active.querySelectorAll('.card').forEach(card=>{
+      const name=(card.querySelector('.card-name')?.textContent||'').trim();
+      const type=getTypeFromName(name);
+      card.style.display = allowed.includes(type) ? '' : 'none';
+    });
+    // Nos outros painéis esconde tudo (pois não estão visíveis de qualquer forma)
+    document.querySelectorAll('.col-panel:not(.active)').forEach(panel=>{
+      panel.querySelectorAll('.card').forEach(card=>{
+        card.style.display = '';
+      });
+    });
+  }
 }
 
 function wireTypeFilters(){
@@ -461,6 +481,20 @@ function showToast(msg){ const t=el('toast'); if(!t) return; t.textContent=msg; 
    ========================================================= */
 function openCheckout(){
   if(!cart.length){ alert('Sua sacola está vazia.'); return; }
+
+  // ── EXIGE LOGIN ──
+  const user = typeof getUser === 'function' ? getUser() : null;
+  if(!user){
+    // Fecha o carrinho e abre o modal de auth
+    el('cartSb')?.classList.remove('on');
+    el('cartOv')?.classList.remove('on');
+    setTimeout(()=>{
+      if(typeof showToast==='function') showToast('Faça login ou cadastre-se para finalizar o pedido. 👤');
+      if(typeof toggleAuth==='function') toggleAuth();
+    }, 200);
+    return;
+  }
+
   buildCheckoutSummary();
   if(typeof preencherCheckoutComPerfil==='function') preencherCheckoutComPerfil();
   el('ckOv').classList.add('on'); el('ckOv').setAttribute('aria-hidden','false');
