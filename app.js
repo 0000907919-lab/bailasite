@@ -603,129 +603,126 @@ function applyShipping(){
 }
 
 /* =========================================================
-   PIX — BR Code + QR Code (VERSÃO 100% CORRIGIDA PARA LEITURA)
+   PIX — VERSÃO FINAL ULTRA-COMPATÍVEL
    ========================================================= */
 
 function _renderQRSVG(text) {
-  const canvas = el('pixCanvas');
-  // Busca o container pai que envolve o QR
-  const wrap = canvas ? canvas.parentElement : document.querySelector('.pix-qr-wrap');
+  const wrap = document.querySelector('.pix-qr-wrap') || el('pixCanvas')?.parentElement;
   if (!wrap) return;
 
-  // 1. Limpa o container e força FUNDO BRANCO e PADDING (Margem de segurança)
-  // Isso é vital para que a câmera do banco não "se perca" com as bordas do modal
+  // 1. Limpeza total e fundo branco puro para contraste
   wrap.style.background = "#ffffff";
-  wrap.style.padding = "20px";
-  wrap.style.display = "inline-block";
-  wrap.style.borderRadius = "12px";
-  
-  wrap.innerHTML = `
-    <div style="width:280px;height:280px;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-      <span style="font-size:12px;color:#666;margin-bottom:10px;">Gerando QR Code...</span>
-    </div>`;
+  wrap.style.padding = "15px"; 
+  wrap.style.borderRadius = "8px";
 
   try {
-    if (!window.BaillaQR) throw new Error('Biblioteca BaillaQR não encontrada');
+    if (!window.BaillaQR) throw new Error('Lib faltante');
 
-    // 2. Gera o SVG com um tamanho fixo de 300px para garantir resolução
-    const svg = window.BaillaQR.toSVG(text, 300);
+    // 2. Gerar com margem interna (margin: 2) para ajudar o foco da câmera
+    // Aumentamos para 350 para garantir que cada pixel seja bem definido
+    const svg = window.BaillaQR.toSVG(text, 350, { margin: 2 });
     wrap.innerHTML = svg;
 
     const s = wrap.querySelector('svg');
     if (s) {
-      // 3. Estilização do SVG para NITIDEZ MÁXIMA
       s.style.display = 'block';
-      s.style.maxWidth = '100%';
+      s.style.width = '100%';
       s.style.height = 'auto';
-      s.style.background = '#ffffff';
-      // shape-rendering: crispEdges remove o "embaçado" dos quadradinhos
-      s.style.shapeRendering = 'crispEdges'; 
-      s.style.filter = 'drop-shadow(0 2px 8px rgba(0,0,0,0.1))';
+      // Força o renderizador a não "embaçar" os cantos (essencial para QR Codes)
+      s.style.imageRendering = 'pixelated';
+      s.style.shapeRendering = 'crispEdges';
     }
   } catch (e) {
-    console.error('[ERRO PIX]', e);
-    wrap.innerHTML = `
-      <div style="padding:20px;text-align:center;border:1px solid #eee;border-radius:12px;">
-        <p style="font-size:13px;color:#c62828;">Erro ao gerar imagem QR.</p>
-        <p style="font-size:12px;color:#666;">Por favor, utilize o código Copia e Cola abaixo.</p>
-      </div>`;
+    wrap.innerHTML = "<p>Erro ao gerar QR. Use o Copia e Cola.</p>";
   }
 }
 
-/* --- FUNÇÃO DE GERAÇÃO DO PAYLOAD (MANTIDA MAS HIGIENIZADA) --- */
+/* 3. Simplificação do Payload para diminuir a densidade do QR Code */
 function buildPixPayload(amount) {
   const valor = Number(amount || 0).toFixed(2);
-  const name  = _san(PIX_NAME, 25);
-  const city  = _san(PIX_CITY, 15);
-  const key   = _sanKey(PIX_KEY, 77);
+  
+  // REMOVEMOS acentos e espaços extras que aumentam o tamanho do código
+  const name  = "BAILLA FITNESS"; // Nome curto = QR Code menos denso
+  const city  = "SAO PAULO";
+  const key   = PIX_KEY.trim();
 
-  // Montagem conforme padrão BCB (Brasil Central)
   const merchant = _f('26', _f('00', 'BR.GOV.BCB.PIX') + _f('01', key));
-  const adf = _f('62', _f('05', '***')); // Campo TXID (*** para dinâmico sem ID)
+  const adf = _f('62', _f('05', '***')); 
 
   const body =
-    _f('00', '01') +             // Payload Indicator
-    merchant +                   // Info Recebedor
-    _f('52', '0000') +           // Merchant Category Code
-    _f('53', '986') +            // Currency (BRL)
-    _f('54', valor) +            // Valor do Pedido
-    _f('58', 'BR') +             // Country Code
-    _f('59', name) +             // Nome Fantasia
-    _f('60', city) +             // Cidade
-    adf +                        // Campo Adicional
-    '6304';                      // CRC Placeholder
+    _f('00', '01') +
+    merchant +
+    _f('52', '0000') +
+    _f('53', '986') +
+    _f('54', valor) +
+    _f('58', 'BR') +
+    _f('59', name) +
+    _f('60', city) +
+    adf +
+    '6304';
+
+  return body + _crc(body);
+}/* =========================================================
+   PIX — VERSÃO FINAL ULTRA-COMPATÍVEL
+   ========================================================= */
+
+function _renderQRSVG(text) {
+  const wrap = document.querySelector('.pix-qr-wrap') || el('pixCanvas')?.parentElement;
+  if (!wrap) return;
+
+  // 1. Limpeza total e fundo branco puro para contraste
+  wrap.style.background = "#ffffff";
+  wrap.style.padding = "15px"; 
+  wrap.style.borderRadius = "8px";
+
+  try {
+    if (!window.BaillaQR) throw new Error('Lib faltante');
+
+    // 2. Gerar com margem interna (margin: 2) para ajudar o foco da câmera
+    // Aumentamos para 350 para garantir que cada pixel seja bem definido
+    const svg = window.BaillaQR.toSVG(text, 350, { margin: 2 });
+    wrap.innerHTML = svg;
+
+    const s = wrap.querySelector('svg');
+    if (s) {
+      s.style.display = 'block';
+      s.style.width = '100%';
+      s.style.height = 'auto';
+      // Força o renderizador a não "embaçar" os cantos (essencial para QR Codes)
+      s.style.imageRendering = 'pixelated';
+      s.style.shapeRendering = 'crispEdges';
+    }
+  } catch (e) {
+    wrap.innerHTML = "<p>Erro ao gerar QR. Use o Copia e Cola.</p>";
+  }
+}
+
+/* 3. Simplificação do Payload para diminuir a densidade do QR Code */
+function buildPixPayload(amount) {
+  const valor = Number(amount || 0).toFixed(2);
+  
+  // REMOVEMOS acentos e espaços extras que aumentam o tamanho do código
+  const name  = "BAILLA FITNESS"; // Nome curto = QR Code menos denso
+  const city  = "SAO PAULO";
+  const key   = PIX_KEY.trim();
+
+  const merchant = _f('26', _f('00', 'BR.GOV.BCB.PIX') + _f('01', key));
+  const adf = _f('62', _f('05', '***')); 
+
+  const body =
+    _f('00', '01') +
+    merchant +
+    _f('52', '0000') +
+    _f('53', '986') +
+    _f('54', valor) +
+    _f('58', 'BR') +
+    _f('59', name) +
+    _f('60', city) +
+    adf +
+    '6304';
 
   return body + _crc(body);
 }
-
-// Helpers do PIX (Não alterar)
-function _f(id, val) { return id + String(val.length).padStart(2, '0') + val; }
-function _crc(str) {
-  let c = 0xFFFF;
-  for (let i = 0; i < str.length; i++) {
-    c ^= str.charCodeAt(i) << 8;
-    for (let j = 0; j < 8; j++)
-      c = (c & 0x8000) ? ((c << 1) ^ 0x1021) & 0xFFFF : (c << 1) & 0xFFFF;
-  }
-  return c.toString(16).toUpperCase().padStart(4, '0');
-   
-}   ========================================================= */
-function _renderQRSVG(text){
-  const canvas = el('pixCanvas');
-  const wrap = canvas ? canvas.parentElement : document.querySelector('.pix-qr-wrap');
-  if(!wrap) return;
-
-  // CORREÇÃO 1: Fundo agora é BRANCO PURO (#ffffff) para contraste máximo
-  wrap.innerHTML = 
-    '<div style="width:260px;height:260px;background:#ffffff;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#aaa">gerando QR…</div>';
-
-  try {
-    if(!window.BaillaQR) throw new Error('BaillaQR nao carregado');
-    
-    // CORREÇÃO 2: Aumentamos o tamanho de 280 para 320 para dar mais nitidez
-    const svg = window.BaillaQR.toSVG(text, 320); 
-    wrap.innerHTML = svg;
-    
-    const s = wrap.querySelector('svg');
-    if(s){
-      // CORREÇÃO 3: Adicionado PADDING (margem branca) e SHAPE-RENDERING
-      // A margem branca é essencial para a câmera separar o QR do resto da tela
-      s.style.cssText = 
-        'border-radius:12px; ' +
-        'box-shadow:0 4px 20px rgba(0,0,0,0.15); ' +
-        'display:block; ' +
-        'max-width:100%; ' +
-        'background:#ffffff; ' + 
-        'padding:18px; ' + // Margem de segurança (Quiet Zone)
-        'shape-rendering:crispEdges;'; // Deixa os quadrados perfeitamente nítidos
-    }
-  } catch(e) {
-    console.error('[QR]', e);
-    wrap.innerHTML = 
-      '<p style="font-size:12px;color:#888;text-align:center;padding:20px;border:1px solid #eee;border-radius:12px;">Use o código copia e cola acima.</p>';
-  }
-}
-
    /* =========================================================
    CUPOM DE DESCONTO
    ========================================================= */
