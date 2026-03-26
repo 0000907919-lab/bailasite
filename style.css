@@ -865,3 +865,37 @@ footer{background:var(--text);color:#fff;padding:3.5rem 2rem 2rem}
 .pix-qr-wrap {
     overflow: visible !important;
 }
+/* ════════ CORREÇÃO QR CODE PIX ════════ */
+
+/* Container que envolve o QR Code */
+.pix-qr-wrap {
+    background: #FFFFFF !important; /* Branco puro obrigatório */
+    padding: 20px !important;       /* Margem de segurança para a câmera */
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin: 15px auto;
+    border: 1px solid #EEEEEE;
+}
+
+/* Força o SVG (imagem do QR) a ter contraste máximo */
+.pix-qr-wrap svg {
+    display: block !important;
+    max-width: 240px !important;    /* Tamanho ideal para foco da câmera */
+    height: auto !important;
+    shape-rendering: crispEdges !important; /* Remove o embaçado das bordas */
+}
+
+/* Ajuste do modal do PIX para garantir visibilidade */
+#pixOv .ck-modal {
+    text-align: center;
+    background: #FDFBF9; /* var(--branco) */
+}
+
+/* Estilo do código "Copia e Cola" para não confundir com o QR */
+#pixCode {
+    filter: none !important;
+    opacity: 1 !important;
+}
