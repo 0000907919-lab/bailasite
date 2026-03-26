@@ -732,6 +732,40 @@ footer{background:var(--text);color:#fff;padding:3.5rem 2rem 2rem}
   #toast{font-size:.55rem;padding:.6rem 1.2rem;white-space:normal;text-align:center;max-width:90vw}
 
   /* PIX modal */
+  <div id="pix-modal" class="ck-ov" style="display: none;">
+  <div class="ck-modal" style="max-width: 420px;">
+    <div class="ck-hd">
+      <h2>Pagamento PIX</h2>
+      <button class="ck-close" onclick="fecharPix()">×</button>
+    </div>
+    
+    <div style="padding: 20px; text-align: center;">
+      <p class="pix-instruction" style="font-size: 0.85rem; margin-bottom: 20px; color: var(--text-soft);">
+        Finalize seu pedido na <strong>Bailla</strong> escaneando o QR Code abaixo:
+      </p>
+
+      <div id="qrcode-wrap" style="background: white; padding: 20px; border-radius: 12px; display: inline-block; border: 1px solid var(--border-lt); margin-bottom: 20px;">
+        <div id="qrcode-target"></div> </div>
+
+      <div style="text-align: left;">
+        <label style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Copia e Cola:</label>
+        <div style="display: flex; gap: 8px; margin-top: 5px;">
+          <input type="text" id="pix-input" value="00020126330014br.gov.bcb.pix0111SUACHAVEAQUI" readonly 
+                 style="flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.75rem; background: var(--creme);">
+          <button onclick="copiarPix()" class="tf-btn on" style="padding: 0 15px; font-size: 0.6rem;">Copiar</button>
+        </div>
+      </div>
+
+      <button class="ck-btn" style="background: var(--pix); margin-top: 25px;" onclick="confirmarPagamento()">
+        Já realizei o pagamento
+      </button>
+      
+      <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 15px;">
+        O processamento pode levar até 2 minutos.
+      </p>
+    </div>
+  </div>
+</div>
 
   /* Auth modal */
   .auth-modal{width:100%;max-width:100%;border-radius:16px 16px 0 0;top:auto;bottom:0;transform:none;left:0}
