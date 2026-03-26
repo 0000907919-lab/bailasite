@@ -10,10 +10,7 @@ const CHX = {
   "Verde Militar":"#4a5240","Verde":"#4a5240","Rosa Barbie":"#e75480",
   "Preto com Branco":"#333","Petróleo com Branco":"#1b4a52","Petróleo":"#1b4a52",
   "Petroleo com Branco":"#1b4a52","Petroleo":"#1b4a52",
-  "Bordô com Branco":"#5a1528","Bordô":"#5a1528","Bordo com Branco":"#5a1528","Bordo":"#5a1528",
-  "Lavanda":"#b39ddb","Rosa Claro":"#f4a7b9","Rosa Chiclete":"#e91e8c","Rosa Iogurte":"#f8c8d4",
-  "Verde Menta":"#80cbc4","Azul Bebe com Marinho":"#90caf9","Azul Bebê com Marinho":"#90caf9",
-  "Expresso":"#4e342e","Expresso com Creme":"#6d4c41"
+  "Bordô com Branco":"#5a1528","Bordô":"#5a1528","Bordo com Branco":"#5a1528","Bordo":"#5a1528"
 };
 
 let cart = [];
@@ -98,40 +95,20 @@ function getTypeFromName(name=''){
 }
 
 function applyTypeFilter(){
-  // Quando "todos", mostra cards em TODOS os painéis
-  // Quando filtro específico, aplica só no painel ativo
-  const map={
-    'todos':      ['top','calça','macaquinho','conjunto','outros'],
-    'top':        ['top'],
-    'calça':      ['calça'],
-    'macaquinho': ['macaquinho'],
-    'conjunto':   ['conjunto']
-  };
-  const allowed = map[CURRENT_TYPE]||[];
-
-  if(CURRENT_TYPE === 'todos'){
-    // Mostra todos os cards em todos os painéis
-    document.querySelectorAll('.col-panel').forEach(panel=>{
-      panel.querySelectorAll('.card').forEach(card=>{
-        card.style.display = '';
-      });
-    });
-  } else {
-    // Filtra apenas no painel ativo
-    const active = document.querySelector('.col-panel.active');
-    if(!active) return;
-    active.querySelectorAll('.card').forEach(card=>{
-      const name=(card.querySelector('.card-name')?.textContent||'').trim();
-      const type=getTypeFromName(name);
-      card.style.display = allowed.includes(type) ? '' : 'none';
-    });
-    // Nos outros painéis esconde tudo (pois não estão visíveis de qualquer forma)
-    document.querySelectorAll('.col-panel:not(.active)').forEach(panel=>{
-      panel.querySelectorAll('.card').forEach(card=>{
-        card.style.display = '';
-      });
-    });
-  }
+  const active=document.querySelector('.col-panel.active'); if(!active) return;
+  active.querySelectorAll('.card').forEach(card=>{
+    const name=(card.querySelector('.card-name')?.textContent||'').trim();
+    const type=getTypeFromName(name);
+    const map={
+      'todos':      ['top','calça','macaquinho','conjunto','outros'],
+      'top':        ['top'],
+      'calça':      ['calça'],
+      'macaquinho': ['macaquinho'],
+      'conjunto':   ['conjunto']
+    };
+    const allowed=map[CURRENT_TYPE]||[];
+    card.style.display=(CURRENT_TYPE==='todos'||allowed.includes(type))?'':'none';
+  });
 }
 
 function wireTypeFilters(){
@@ -481,20 +458,6 @@ function showToast(msg){ const t=el('toast'); if(!t) return; t.textContent=msg; 
    ========================================================= */
 function openCheckout(){
   if(!cart.length){ alert('Sua sacola está vazia.'); return; }
-
-  // ── EXIGE LOGIN ──
-  const user = typeof getUser === 'function' ? getUser() : null;
-  if(!user){
-    // Fecha o carrinho e abre o modal de auth
-    el('cartSb')?.classList.remove('on');
-    el('cartOv')?.classList.remove('on');
-    setTimeout(()=>{
-      if(typeof showToast==='function') showToast('Faça login ou cadastre-se para finalizar o pedido. 👤');
-      if(typeof toggleAuth==='function') toggleAuth();
-    }, 200);
-    return;
-  }
-
   buildCheckoutSummary();
   if(typeof preencherCheckoutComPerfil==='function') preencherCheckoutComPerfil();
   el('ckOv').classList.add('on'); el('ckOv').setAttribute('aria-hidden','false');
@@ -602,7 +565,7 @@ function applyShipping(){
   el('ckEtaLbl').textContent=q?`Prazo estimado: ${(opt==='SEDEX')?q.etaSed:q.etaPac}`:'';
 }
 
-=========================================================
+/* =========================================================
    PIX — BR Code + QR Code
    ========================================================= */
 function _renderQRSVG(text){
@@ -619,13 +582,13 @@ function _renderQRSVG(text){
     wrap.innerHTML='<p style="font-size:12px;color:#888;text-align:center;padding:20px;border:1px solid #eee;border-radius:12px;">Use o código copia e cola acima.</p>';
   }
 }
- 
+
 const PIX_KEY  = 'bailamodafitness@hotmail.com';
 const PIX_NAME = 'BAILLA MODA FITNESS';
 const PIX_CITY = 'SAO PAULO';
- 
+
 function _f(id,val){ const v=String(val); return id+String(v.length).padStart(2,'0')+v; }
- 
+
 function _crc(str){
   let c=0xFFFF;
   for(let i=0;i<str.length;i++){
@@ -634,15 +597,15 @@ function _crc(str){
   }
   return c.toString(16).toUpperCase().padStart(4,'0');
 }
- 
+
 function _san(str,max){
   return String(str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'').replace(/[|"'<>&]/g,'').trim().toUpperCase().substring(0,max);
 }
- 
+
 function _sanKey(str,max){
   return String(str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'').replace(/[|"'<>&\s]/g,'').substring(0,max);
 }
- 
+
 function buildPixPayload(amount){
   const valor=Number(amount||0).toFixed(2);
   const name=_san(PIX_NAME,25);
@@ -656,9 +619,9 @@ function buildPixPayload(amount){
     _f('58','BR')+_f('59',name)+_f('60',city)+adf+'6304';
   return body+_crc(body);
 }
- 
+
 let _pixTimerRef=null;
- 
+
 function _startTimer(){
   const timerEl=el('pixTimer'); if(!timerEl) return;
   clearInterval(_pixTimerRef);
@@ -675,7 +638,7 @@ function _startTimer(){
     timerEl.textContent=String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
   },1000);
 }
- 
+
 function openPix(amount){
   const total=Number(amount||0);
   const payload=buildPixPayload(total);
@@ -687,13 +650,13 @@ function openPix(amount){
   _renderQRSVG(payload);
   _startTimer();
 }
- 
+
 function closePix(){
   clearInterval(_pixTimerRef);
   const ov=el('pixOv');
   if(ov){ ov.classList.remove('on'); ov.setAttribute('aria-hidden','true'); }
 }
- 
+
 function copyPix(){
   const ta=el('pixCode'); if(!ta) return;
   const code=ta.value;
@@ -702,7 +665,7 @@ function copyPix(){
     navigator.clipboard.writeText(code).then(_flashCopy).catch(()=>_execCopy(code));
   } else { _execCopy(code); }
 }
- 
+
 function _execCopy(text){
   const tmp=document.createElement('textarea');
   tmp.value=text;
@@ -713,15 +676,15 @@ function _execCopy(text){
   catch(e){ alert('Não foi possível copiar automaticamente.\nSelecione e copie o código manualmente.'); }
   document.body.removeChild(tmp);
 }
- 
+
 function _flashCopy(){
   const btn=el('pixCopyBtn'); if(!btn) return;
   const orig=btn.textContent;
   btn.textContent='Copiado ✓'; btn.classList.add('copied');
   setTimeout(()=>{ btn.textContent=orig; btn.classList.remove('copied'); },2500);
 }
- 
-   /* =========================================================
+
+/* =========================================================
    CUPOM DE DESCONTO
    ========================================================= */
 const CUPONS = {
@@ -825,4 +788,3 @@ window.addEventListener('cart:updated',()=>{
   const ov=el('ckOv');
   if(ov&&ov.classList.contains('on')) buildCheckoutSummary();
 });
-/* hero-track slider removido — o slider correto usa .hero-slide.active */
