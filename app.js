@@ -564,124 +564,178 @@ function applyShipping(){
   const q=cep.length===8?quoteByCep(cep):null;
   el('ckEtaLbl').textContent=q?`Prazo estimado: ${(opt==='SEDEX')?q.etaSed:q.etaPac}`:'';
 }
-
 /* =========================================================
-   PIX — BR Code + QR Code
+   PIX — VERSÃO CORRIGIDA (Chave: bailamodafitness@hotmail.com)
    ========================================================= */
-function _renderQRSVG(text){
-  const wrap = el('pixCanvas')?.parentElement;
-  if(!wrap) return;
-  wrap.innerHTML='<div style="width:260px;height:260px;background:#f5f5f5;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#aaa">gerando QR…</div>';
-  try{
-    const svg = window.BaillaQR.toSVG(text, 280);
-    wrap.innerHTML = svg;
-    const s = wrap.querySelector('svg');
-    if(s) s.style.cssText = 'border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.1);display:block;max-width:100%;';
-  }catch(e){
-    console.error('[QR]',e);
-    wrap.innerHTML='<p style="font-size:12px;color:#888;text-align:center;padding:20px;border:1px solid #eee;border-radius:12px;">Use o código copia e cola acima.</p>';
-  }
+const PIX_CHAVE  = "bailamodafitness@hotmail.com";
+const PIX_NOME   = "BAILLA MODA FITNESS";
+const PIX_CIDADE = "SAO PAULO";
+
+function tlv(id, valor) {
+  const v = String(valor || "");
+  return id + v.length.toString().padStart(2, "0") + v;
 }
 
-const PIX_KEY  = 'bailamodafitness@hotmail.com';
-const PIX_NAME = 'BAILLA MODA FITNESS';
-const PIX_CITY = 'SAO PAULO';
-
-function _f(id,val){ const v=String(val); return id+String(v.length).padStart(2,'0')+v; }
-
-function _crc(str){
-  let c=0xFFFF;
-  for(let i=0;i<str.length;i++){
-    c^=str.charCodeAt(i)<<8;
-    for(let j=0;j<8;j++) c=(c&0x8000)?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF;
-  }
-  return c.toString(16).toUpperCase().padStart(4,'0');
-}
-
-function _san(str,max){
-  return String(str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'').replace(/[|"'<>&]/g,'').trim().toUpperCase().substring(0,max);
-}
-
-function _sanKey(str,max){
-  return String(str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'').replace(/[|"'<>&\s]/g,'').substring(0,max);
-}
-
-function buildPixPayload(amount){
-  const valor=Number(amount||0).toFixed(2);
-  const name=_san(PIX_NAME,25);
-  const city=_san(PIX_CITY,15);
-  const key=_sanKey(PIX_KEY,77);
-  const mai=_f('26',_f('00','br.gov.bcb.pix')+_f('01',key));
-  const adf=_f('62',_f('05','***'));
-  const body=
-    _f('00','01')+_f('01','12')+mai+
-    _f('52','0000')+_f('53','986')+_f('54',valor)+
-    _f('58','BR')+_f('59',name)+_f('60',city)+adf+'6304';
-  return body+_crc(body);
-}
-
-let _pixTimerRef=null;
-
-function _startTimer(){
-  const timerEl=el('pixTimer'); if(!timerEl) return;
-  clearInterval(_pixTimerRef);
-  let secs=30*60;
-  _pixTimerRef=setInterval(()=>{
-    secs--;
-    if(secs<=0){
-      clearInterval(_pixTimerRef);
-      timerEl.textContent='expirado';
-      const st=el('pixStatus');
-      if(st){ st.textContent='código expirado'; st.className='pix-status expired'; }
-      return;
+function crc16(payload) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= payload.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) 
+        ? ((crc << 1) ^ 0x1021) & 0xFFFF 
+        : (crc << 1) & 0xFFFF;
     }
-    timerEl.textContent=String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
-  },1000);
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
 }
 
-function openPix(amount){
-  const total=Number(amount||0);
-  const payload=buildPixPayload(total);
-  const amtEl=el('pixAmountLbl'); if(amtEl) amtEl.textContent=fmtBR(total);
-  const stEl=el('pixStatus'); if(stEl){ stEl.textContent='aguardando pagamento'; stEl.className='pix-status waiting'; }
-  const codeEl=el('pixCode'); if(codeEl) codeEl.value=payload;
-  const shortEl=el('pixCodeShort'); if(shortEl) shortEl.textContent=payload.slice(0,34)+'…';
-  const ov=el('pixOv'); if(ov){ ov.classList.add('on'); ov.setAttribute('aria-hidden','false'); }
-  _renderQRSVG(payload);
-  _startTimer();
+function buildPixPayload(amount) {
+  const valor = Number(amount || 0).toFixed(2);
+
+  const gui = tlv("00", "br.gov.bcb.pix");
+  const key = tlv("01", PIX_CHAVE);
+  const merchant = tlv("26", gui + key);
+
+  let payload = 
+    tlv("00", "01") +
+    merchant +
+    tlv("52", "0000") +
+    tlv("53", "986") +
+    tlv("54", valor) +
+    tlv("58", "BR") +
+    tlv("59", PIX_NOME.slice(0, 25)) +
+    tlv("60", PIX_CIDADE.slice(0, 15)) +
+    tlv("62", tlv("05", "***"));
+
+  // Campo CRC com placeholder
+  payload += "6304";
+
+  // Calcula CRC corretamente
+  const checksum = crc16(payload);
+
+  return payload + checksum;
 }
 
-function closePix(){
-  clearInterval(_pixTimerRef);
-  const ov=el('pixOv');
-  if(ov){ ov.classList.remove('on'); ov.setAttribute('aria-hidden','true'); }
+/* ====================== FUNÇÕES DO MODAL PIX ====================== */
+let pixTimerRef = null;
+
+function openPix(amount) {
+  const total = Number(amount || 0);
+  if (total <= 0) {
+    alert("Valor inválido para pagamento via PIX.");
+    return;
+  }
+
+  const payload = buildPixPayload(total);
+
+  // Valor mostrado
+  const amtEl = el('pixAmountLbl');
+  if (amtEl) amtEl.textContent = fmtBR(total);
+
+  // Código copia e cola
+  const codeEl = el('pixCode');
+  const shortEl = el('pixCodeShort');
+  if (codeEl) codeEl.value = payload;
+  if (shortEl) shortEl.textContent = payload.slice(0, 40) + "…";
+
+  // Status
+  const statusEl = el('pixStatus');
+  if (statusEl) {
+    statusEl.textContent = "aguardando pagamento";
+    statusEl.className = "pix-status waiting";
+  }
+
+  // Gera QR Code (com quiet zone)
+  const wrap = document.getElementById('pixQrWrap');
+  if (wrap && window.BaillaQR) {
+    wrap.innerHTML = BaillaQR.toSVG(payload, 280);
+    const svg = wrap.querySelector('svg');
+    if (svg) {
+      svg.style.cssText = 'border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,.12); display:block; max-width:100%;';
+    }
+  }
+
+  // Abre o modal
+  const ov = el('pixOv');
+  if (ov) {
+    ov.classList.add('on');
+    ov.setAttribute('aria-hidden', 'false');
+  }
+
+  _startPixTimer();
 }
 
-function copyPix(){
-  const ta=el('pixCode'); if(!ta) return;
-  const code=ta.value;
-  if(!code||code.length<10){ alert('Código Pix não foi gerado ainda.'); return; }
-  if(navigator.clipboard&&window.isSecureContext){
-    navigator.clipboard.writeText(code).then(_flashCopy).catch(()=>_execCopy(code));
-  } else { _execCopy(code); }
+function closePix() {
+  clearInterval(pixTimerRef);
+  const ov = el('pixOv');
+  if (ov) {
+    ov.classList.remove('on');
+    ov.setAttribute('aria-hidden', 'true');
+  }
+  document.body.style.overflow = '';
 }
 
-function _execCopy(text){
-  const tmp=document.createElement('textarea');
-  tmp.value=text;
-  tmp.style.cssText='position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
+function copyPix() {
+  const code = el('pixCode')?.value || '';
+  if (!code || code.length < 20) {
+    alert("Código PIX não foi gerado corretamente.");
+    return;
+  }
+
+  const btn = el('pixCopyBtn');
+  const flash = () => {
+    if (btn) {
+      const original = btn.textContent;
+      btn.textContent = 'Copiado ✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copied');
+      }, 2500);
+    }
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(code).then(flash).catch(() => _execCopy(code));
+  } else {
+    _execCopy(code);
+  }
+}
+
+function _execCopy(text) {
+  const tmp = document.createElement('textarea');
+  tmp.value = text;
+  tmp.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
   document.body.appendChild(tmp);
-  tmp.focus(); tmp.select();
-  try{ document.execCommand('copy'); _flashCopy(); }
-  catch(e){ alert('Não foi possível copiar automaticamente.\nSelecione e copie o código manualmente.'); }
+  tmp.focus();
+  tmp.select();
+  try { document.execCommand('copy'); } catch(e) {}
   document.body.removeChild(tmp);
 }
 
-function _flashCopy(){
-  const btn=el('pixCopyBtn'); if(!btn) return;
-  const orig=btn.textContent;
-  btn.textContent='Copiado ✓'; btn.classList.add('copied');
-  setTimeout(()=>{ btn.textContent=orig; btn.classList.remove('copied'); },2500);
+function _startPixTimer() {
+  clearInterval(pixTimerRef);
+  let secs = 30 * 60; // 30 minutos
+
+  pixTimerRef = setInterval(() => {
+    secs--;
+    const timerEl = el('pixTimer');
+    if (!timerEl) return;
+
+    if (secs <= 0) {
+      clearInterval(pixTimerRef);
+      const st = el('pixStatus');
+      if (st) {
+        st.textContent = 'código expirado';
+        st.className = 'pix-status expired';
+      }
+      return;
+    }
+
+    const min = Math.floor(secs / 60);
+    const seg = secs % 60;
+    timerEl.textContent = `${min.toString().padStart(2,'0')}:${seg.toString().padStart(2,'0')}`;
+  }, 1000);
 }
 
 /* =========================================================
