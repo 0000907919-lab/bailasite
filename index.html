@@ -732,10 +732,8 @@ footer{background:var(--text);color:#fff;padding:3.5rem 2rem 2rem}
   #toast{font-size:.55rem;padding:.6rem 1.2rem;white-space:normal;text-align:center;max-width:90vw}
 
   /* PIX modal */
- <div class="pix-qr-wrap">
-    <div class="pix-qr-box">
-        <canvas id="pixCanvas"></canvas>
-    </div>
+<div class="pix-qr-wrap qr-fix">
+    <canvas id="pixCanvas"></canvas>
 </div>
 
   /* Auth modal */
@@ -1283,7 +1281,7 @@ footer{background:var(--text);color:#fff;padding:3.5rem 2rem 2rem}
       </div>
     </div>
     <textarea id="pixCode" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;" readonly></textarea>
-    <div class="pix-qr-wrap qr-f
+    <div class="pix-qr-wrap qr-fix">     <canvas id="pixCanvas"></canvas> </div>ix">     <canvas id="pixCanvas"></canvas> </div>ix">     <canvas id="pixCanvas"></canvas> </div>
     <p class="pix-hint">Abra seu app bancário › Pix › QR Code ou "copia e cola".</p>
     <button class="pix-done-btn" onclick="closePix()">FECHAR</button>
   </div>
