@@ -445,7 +445,7 @@ function _startPixTimer() {
    CUPOM DE DESCONTO
    ========================================================= */
 const CUPONS = {
-  'PRIMEIRA COMPRA': { pct: 15, label: '15% de desconto (PRIMEIRA COMPRA)' }
+  'PRIMEIRACOMPRA': { pct: 10, label: '10% de desconto (PRIMEIRA COMPRA)' }
 };
 let cupomAtivo = null;
 function aplicarCupom(){
