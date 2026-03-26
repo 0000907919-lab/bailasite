@@ -267,14 +267,12 @@ function encode(text){
 function toSVG(text,px){
   var qr=encode(text);
   var size=qr.size;
-  var quiet=4;
-  var mod=Math.floor(px/(size+quiet*2));
-  var total=mod*(size+quiet*2);
-  var off=quiet*mod;
+  var mod=Math.floor(px/size);
+  var total=mod*size;
   var parts=['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ',total,' ',total,'" width="',total,'" height="',total,'"><rect width="',total,'" height="',total,'" fill="#fff"/>'];
   for(var r=0;r<size;r++) for(var c=0;c<size;c++){
     if((qr.matrix[r][c]&1)===1){
-      parts.push('<rect x="',(off+c*mod),'" y="',(off+r*mod),'" width="',mod,'" height="',mod,'" fill="#000"/>');
+      parts.push('<rect x="',c*mod,'" y="',r*mod,'" width="',mod,'" height="',mod,'" fill="#000"/>');
     }
   }
   parts.push('</svg>');
