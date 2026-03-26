@@ -568,12 +568,31 @@ function applyShipping(){
 /* =========================================================
    PIX — BR Code + QR Code (CORRIGIDO 🔥)
    ========================================================= */
-
 function _renderQRSVG(text){
-  const wrap = el('pixCanvas')?.parentElement;
+  const wrap = el('pixQrWrap'); // ✅ ID CORRETO
   if(!wrap) return;
 
-  wrap.innerHTML='<div style="width:260px;height:260px;background:#f5f5f5;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#aaa">gerando QR…</div>';
+  // loading
+  wrap.innerHTML = `
+    <div style="
+      width:260px;height:260px;
+      background:#f5f5f5;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      color:#aaa">
+      gerando QR…
+    </div>
+  `;
+
+  // 🔥 segurança extra
+  if(!window.BaillaQR){
+    console.error('❌ BaillaQR não carregado');
+    wrap.innerHTML = '<p style="color:red;text-align:center">Erro ao gerar QR</p>';
+    return;
+  }
 
   try{
     const svg = window.BaillaQR.toSVG(text, 280);
@@ -581,18 +600,29 @@ function _renderQRSVG(text){
 
     const s = wrap.querySelector('svg');
     if(s){
-      s.style.cssText = 'border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.1);display:block;max-width:100%;';
+      s.style.cssText = `
+        border-radius:12px;
+        box-shadow:0 2px 16px rgba(0,0,0,.1);
+        display:block;
+        margin:auto;
+      `;
     }
+
   }catch(e){
-    console.error('[QR]',e);
-    wrap.innerHTML='<p style="font-size:12px;color:#888;text-align:center;padding:20px;border:1px solid #eee;border-radius:12px;">Use o código copia e cola acima.</p>';
+    console.error('[QR]', e);
+    wrap.innerHTML = `
+      <p style="
+        font-size:12px;
+        color:#888;
+        text-align:center;
+        padding:20px;
+        border:1px solid #eee;
+        border-radius:12px;">
+        Use o código copia e cola acima.
+      </p>
+    `;
   }
 }
-
-/* 🔑 CONFIG PIX */
-const PIX_KEY  = 'bailamodafitness@hotmail.com';
-const PIX_NAME = 'BAILLA MODA FITNESS';
-const PIX_CITY = 'SAO PAULO';
 
 /* =========================
    Helpers EMV
