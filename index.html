@@ -241,7 +241,7 @@ h1,h2,h3,.sec-title,.hero-title,.pm-name,.cart-hd-title,.ck-hd h2,.sobre-title{f
 .hero-slides{position:absolute;inset:0;width:100%;height:100%}
 .hero-slide{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1s ease}
 .hero-slide.active{opacity:1}
-.hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.hero-slide img{width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
 .hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,.5) 35%,rgba(0,0,0,.1) 100%);z-index:1}
 .hero-content{position:relative;z-index:2;padding:0 4rem;max-width:600px}
@@ -269,9 +269,9 @@ h1,h2,h3,.sec-title,.hero-title,.pm-name,.cart-hd-title,.ck-hd h2,.sobre-title{f
 /* ════════ CATEGORIAS ════════ */
 .cat-section{padding:4rem;background:var(--branco)}
 .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1200px;margin:0 auto}
-.cat-card{position:relative;border-radius:12px;overflow:hidden;cursor:pointer;aspect-ratio:3/4;transition:transform .3s}
+.cat-card{position:relative;border-radius:12px;overflow:hidden;cursor:pointer;aspect-ratio:2/3;transition:transform .3s}
 .cat-card:hover{transform:translateY(-4px)}
-.cat-card img{width:100%;height:100%;object-fit:cover;object-position:top;transition:transform .5s}
+.cat-card img{width:100%;height:100%;object-fit:cover;object-position:center 20%;transition:transform .5s}
 .cat-card:hover img{transform:scale(1.05)}
 .cat-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,rgba(0,0,0,.1) 60%)}
 .cat-info{position:absolute;bottom:0;left:0;right:0;padding:1.5rem;text-align:center}
@@ -639,13 +639,18 @@ footer{background:var(--text);color:#fff;padding:3.5rem 2rem 2rem}
   .hdr-logo-sub{display:none}
   .hdr-nav-desktop{display:none}
   .search-bar{top:60px;z-index:810}
-  .hero-banner{height:70vh;min-height:400px;margin-top:60px}
+  .hero-banner{height:100svh;min-height:500px;margin-top:60px}
+  .hero-slide img{object-position:center center}
   .hero-content{padding:0 1.5rem}
-  .hero-title-new{font-size:2.8rem}
-  .cat-section{padding:2rem 1rem}
-  .cat-grid{grid-template-columns:repeat(3,1fr);gap:8px}
-  .cat-title{font-size:.6rem;letter-spacing:.15em}
-  .cat-btn{padding:.4rem .8rem;font-size:.5rem}
+  .hero-title-new{font-size:2.2rem}
+  .hero-eyebrow{font-size:.55rem}
+  .hero-cta-btn{padding:.8rem 1.8rem;font-size:.6rem}
+  .hero-dots{bottom:1.2rem}
+  .cat-section{padding:1.5rem .8rem}
+  .cat-grid{grid-template-columns:repeat(3,1fr);gap:6px}
+  .cat-card{aspect-ratio:3/4;border-radius:8px}
+  .cat-title{font-size:.55rem;letter-spacing:.1em;margin-bottom:.5rem}
+  .cat-btn{padding:.35rem .6rem;font-size:.45rem;letter-spacing:.1em}
   #collections{padding-top:4rem}
   .products-grid{margin:0;grid-template-columns:1fr 1fr}
   .type-filters{margin:0 1rem 1rem}
@@ -898,10 +903,6 @@ footer{background:var(--text);color:#fff;padding:3.5rem 2rem 2rem}
   </div>
 </section>
 
-<!-- BANNER CUPOM -->
-<div class="banner-cupom">
-  <img src="imagens/banner2.jpg" alt="10% OFF - Use o cupom PRIMEIRACOMPRA"/>
-</div>
 
 <!-- CATEGORIAS -->
 <section class="cat-section">
